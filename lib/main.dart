@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:widgets_to_image/widgets_to_image.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,12 +49,26 @@ class _HomeState extends State<Home> {
 
   FocusNode focusNode = FocusNode();
 
-  List<Color> colors = [Colors.red, Colors.green, Colors.black, Colors.yellow];
+  List<Color> colorsStroke = [
+    Colors.red,
+    Colors.green,
+    Colors.black,
+    Colors.yellow
+  ];
+  List<Color> colorsText = [
+    Colors.black,
+    Colors.green,
+    Colors.blue,
+    Colors.brown
+  ];
 
-  int selectedColor = 0;
+  int selectedColorStroke = 0;
+  int selectedColorText = 0;
 
   int _valueOfTextSize = 24;
   int _valueOfTextStroke = 5;
+
+  WidgetsToImageController widgetsToImageController = WidgetsToImageController();
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +87,7 @@ class _HomeState extends State<Home> {
                         decoration: const BoxDecoration(
                             color: Colors.grey,
                             borderRadius:
-                            BorderRadius.all(Radius.circular(12.0))),
+                                BorderRadius.all(Radius.circular(12.0))),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -99,24 +118,29 @@ class _HomeState extends State<Home> {
                                               ? 0.0
                                               : -25.0)),
                                 ),
-                                Text(
-                                  text,
-                                  style: TextStyle(
-                                    fontSize: _valueOfTextSize.toDouble(),
-                                    foreground: Paint()
-                                      ..style = PaintingStyle.stroke
-                                      ..strokeWidth =
-                                      _valueOfTextStroke.toDouble()
-                                      ..color = colors[selectedColor],
-                                  ),
-                                ),
-                                Text(
-                                  text,
-                                  style: TextStyle(
-                                    fontSize: _valueOfTextSize.toDouble(),
-                                    color: Colors.grey[300],
-                                  ),
-                                ),
+                                WidgetsToImage(controller: widgetsToImageController, child: Stack(
+                                  children: [
+                                    Text(
+                                      text,
+                                      style: TextStyle(
+                                        fontSize: _valueOfTextSize.toDouble(),
+                                        foreground: Paint()
+                                          ..style = PaintingStyle.stroke
+                                          ..strokeWidth =
+                                          _valueOfTextStroke.toDouble()
+                                          ..color =
+                                          colorsStroke[selectedColorStroke],
+                                      ),
+                                    ),
+                                    Text(
+                                      text,
+                                      style: TextStyle(
+                                        fontSize: _valueOfTextSize.toDouble(),
+                                        color: colorsText[selectedColorText],
+                                      ),
+                                    ),
+                                  ],
+                                ))
                               ],
                             ),
                           ],
@@ -140,11 +164,11 @@ class _HomeState extends State<Home> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    for (var i = 0; i < colors.length; i++)
+                    for (var i = 0; i < colorsStroke.length; i++)
                       InkWell(
                         onTap: () {
                           setState(() {
-                            selectedColor = i;
+                            selectedColorStroke = i;
                           });
                         },
                         child: Container(
@@ -152,8 +176,45 @@ class _HomeState extends State<Home> {
                           width: 45.0,
                           decoration: BoxDecoration(
                               borderRadius:
-                              const BorderRadius.all(Radius.circular(5.0)),
-                              color: colors[i]),
+                                  const BorderRadius.all(Radius.circular(5.0)),
+                              color: colorsStroke[i]),
+                        ),
+                      )
+                  ],
+                ),
+                const SizedBox(
+                  height: 16.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text(
+                      'تغییر رنگ متن',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16.0),
+                    )
+                  ],
+                ),
+                const SizedBox(
+                  height: 16.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (var i = 0; i < colorsText.length; i++)
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            selectedColorText = i;
+                          });
+                        },
+                        child: Container(
+                          height: 45.0,
+                          width: 45.0,
+                          decoration: BoxDecoration(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(5.0)),
+                              color: colorsText[i]),
                         ),
                       )
                   ],
@@ -204,7 +265,33 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _valueOfTextStroke = newValue.round();
                       });
-                    })
+                    }),
+                const SizedBox(
+                  height: 16.0,
+                ),
+                InkWell(
+                  onTap: ()async{
+                    var image = await widgetsToImageController.capture();
+                    if (image != null) {
+                      _createLevelFile(image);
+                    }
+                  },
+                  child: Container(
+                    height: 56.0,
+                    margin: const EdgeInsets.only(left: 24.0, right: 24.0),
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'جروجی PNG',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                )
               ],
             )));
   }
@@ -216,5 +303,16 @@ class _HomeState extends State<Home> {
       focusNode.requestFocus();
     }
   }
-}
 
+  Future<File?> _createLevelFile(image) async {
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    String appDocPath = appDocDir.path;
+    File file = File("$appDocPath/hafez.png");
+    await file.create(recursive: true);
+    await file.writeAsBytes(image);
+    print(appDocPath);
+    await Share.shareFiles(['$appDocPath/hafez.png']);
+    return null;
+  }
+
+}
