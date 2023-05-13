@@ -11,23 +11,12 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const Home(),
@@ -88,8 +77,7 @@ class _HomeState extends State<Home> {
                             color: Colors.grey,
                             borderRadius:
                                 BorderRadius.all(Radius.circular(12.0))),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: ListView(
                           children: [
                             Stack(
                               children: <Widget>[
@@ -106,7 +94,7 @@ class _HomeState extends State<Home> {
                                   autofocus: true,
                                   keyboardType: TextInputType.multiline,
                                   minLines: 1,
-                                  maxLines: 5,
+                                  maxLines: null,
                                   style: TextStyle(
                                       color: Colors.grey,
                                       fontSize: _valueOfTextSize.toDouble()),
@@ -114,9 +102,7 @@ class _HomeState extends State<Home> {
                                       counter: Container(),
                                       border: InputBorder.none,
                                       contentPadding: EdgeInsets.symmetric(
-                                          vertical: (_valueOfTextSize > 24)
-                                              ? 0.0
-                                              : -25.0)),
+                                          vertical: (_valueOfTextSize > 17)?0.0: -25.0)),
                                 ),
                                 WidgetsToImage(controller: widgetsToImageController, child: Stack(
                                   children: [
@@ -307,11 +293,10 @@ class _HomeState extends State<Home> {
   Future<File?> _createLevelFile(image) async {
     Directory appDocDir = await getApplicationDocumentsDirectory();
     String appDocPath = appDocDir.path;
-    File file = File("$appDocPath/hafez.png");
+    File file = File("$appDocPath/picture.png");
     await file.create(recursive: true);
     await file.writeAsBytes(image);
-    print(appDocPath);
-    await Share.shareFiles(['$appDocPath/hafez.png']);
+    await Share.shareFiles(['$appDocPath/picture.png']);
     return null;
   }
 
